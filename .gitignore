@@ -6,3 +6,5 @@ __pycache__/
 .cache/
 .env
 data/ecommerce.sqlite
+data/raw/
+data/processed/
