@@ -9,10 +9,13 @@ import pandas as pd
 SEED = 42
 END_DATE = pd.Timestamp("2025-06-30")
 START_DATE = pd.Timestamp("2024-01-01")
+# Relative sales weight per catalog product (P001..P015). Must sum to 1.
+PRODUCT_WEIGHTS = [0.08, 0.07, 0.06, 0.07, 0.06, 0.04, 0.08, 0.07, 0.06, 0.07, 0.07, 0.05, 0.08, 0.06, 0.08]
 
 
 def generate_dataset(output_dir: Path, customer_count: int = 2500, order_count: int = 18000) -> None:
     rng = np.random.default_rng(SEED)
+    assert abs(sum(PRODUCT_WEIGHTS) - 1) < 1e-9, "PRODUCT_WEIGHTS must sum to 1"
     output_dir.mkdir(parents=True, exist_ok=True)
 
     catalog = pd.DataFrame(
@@ -75,7 +78,7 @@ def generate_dataset(output_dir: Path, customer_count: int = 2500, order_count: 
         lower = max(START_DATE, signup_dates[customer_idx])
         order_dates.append(lower + pd.Timedelta(days=int(rng.integers(0, max(1, (END_DATE - lower).days + 1)))))
 
-    product_idx = rng.choice(len(catalog), order_count, p=[0.08, 0.07, 0.06, 0.07, 0.06, 0.04, 0.10, 0.07, 0.06, 0.08, 0.07, 0.05, 0.08, 0.06, 0.10])
+    product_idx = rng.choice(len(catalog), order_count, p=PRODUCT_WEIGHTS)
     quantities = rng.choice([1, 2, 3, 4], order_count, p=[0.66, 0.22, 0.09, 0.03])
     discounts = rng.choice([0, 0.05, 0.10, 0.15, 0.25], order_count, p=[0.38, 0.25, 0.22, 0.11, 0.04])
     statuses = rng.choice(["Delivered", "Shipped", "Cancelled", "Returned"], order_count, p=[0.82, 0.08, 0.06, 0.04])
